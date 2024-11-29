@@ -1,5 +1,5 @@
 import express from "express";
-import { signup, login } from "../controllers/user_controller";
+import { signup, login, verifyOtp } from "../controllers/user_controller";
 import { check } from "express-validator";
 
 const router = express.Router();
@@ -18,5 +18,11 @@ router.post("/login", [
     check("email").isEmail().withMessage("A valid email is required"),
     check("password").notEmpty().withMessage("Password is required"),
 ], login);
+router.post("/verifyotp", [
+    check("otp").notEmpty().withMessage("otp is required").isLength({ min: 4, max: 4 }),
+    check("email").isEmail().withMessage("A valid email is required"),
+
+], verifyOtp)
+
 
 export default router;

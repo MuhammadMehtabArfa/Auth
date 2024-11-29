@@ -24,13 +24,19 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
       email,
       password: hashedPassword,
     });
+    const otp = `${Math.floor(1000 + Math.random() * 9000)}`;
+    newUser.otp = otp; // Assign OTP to the user document
     await newUser.save();
-    
+    const message = `Hi ${newUser.username}, your OTP code is: ${otp}`
+    const subject = "Your OTP Code"
 
-    await send_Otp(newUser)
-    
 
-    res.status(201).json({ message: "User created successfully" });
+
+
+
+    await send_Otp(newUser.email, message, subject)
+    res.status(201).json({ message: "otp sent successfully" })
+    return
   } catch (error: any) {
     console.log(error);
     if (error?.code === 11000) {
@@ -48,9 +54,17 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
 
 // Login
 export const login = async (req: Request, res: Response): Promise<void> => {
+  const errors = validationResult(req);
+
+
+  if (!errors.isEmpty()) {
+    res.status(400).json({ errors: errors.array().map(error => error.msg).join(", ") });
+    return
+  }
+
   try {
     const { email, password } = req.body;
-    const user: IUser | null = await UserModel.findOne({ email });
+    const user = await UserModel.findOne({ email });
 
     if (!user) {
       res.status(404).json({ message: "User not found" });
@@ -60,6 +74,17 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       res.status(401).json({ message: "Invalid credentials" });
+      return
+    }
+    if (!user.isVerified) {
+      const otp = `${Math.floor(1000 + Math.random() * 9000)}`;
+      user.otp = otp; // Assign OTP to the user document
+      await user.save();
+      const message = `Hi ${user.username}, your OTP code is: ${otp}`
+      const subject = "Your OTP Code"
+
+      await send_Otp(user.email, message, subject)
+      res.status(201).json({ message: "otp sent successfully" })
       return
     }
 
@@ -75,4 +100,47 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
- 
+// verify otp
+export const verifyOtp = async (req: Request, res: Response): Promise<void> => {
+  const errors = validationResult(req);
+
+
+  if (!errors.isEmpty()) {
+    res.status(400).json({ errors: errors.array().map(error => error.msg).join(", ") });
+    return
+  }
+  const { otp, email } = req.body;
+
+  try {
+    const user = await UserModel.findOne({ email });
+
+
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    if (otp === user.otp) {
+      user.isVerified = true;
+      user.otp = "";
+      await user.save();
+      res.status(200).json({ message: "otp is verified successfully" })
+
+    } else {
+      res.status(400).json({ message: "Invalid OTP" });
+    }
+  } catch (error: any) {
+    console.error("Error verifying OTP:", error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
+
+  }
+
+}
+
+
+// Forgot password function
+export const forgotpass = async (req: Request, res: Response): Promise<void> => {
+
+
+
+}

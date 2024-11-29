@@ -19,7 +19,6 @@ const UserSchema = new Schema<IUser>(
     },
     otp: {
       type: String,
-      unique: true,
     },
     username: {
       type: String,
