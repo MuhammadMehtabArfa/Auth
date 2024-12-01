@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { generateToken } from "../utility/generateToken";
 import { validationResult } from "express-validator";
 import { send_Otp } from "../utility/mailer";
+import crypto from "crypto"
 
 // Signup
 export const signup = async (req: Request, res: Response): Promise<void> => {
@@ -123,6 +124,7 @@ export const verifyOtp = async (req: Request, res: Response): Promise<void> => {
     if (otp === user.otp) {
       user.isVerified = true;
       user.otp = "";
+      user.optExpiry = new Date(Date.now() + 3600000);
       await user.save();
       res.status(200).json({ message: "otp is verified successfully" })
 
@@ -140,7 +142,75 @@ export const verifyOtp = async (req: Request, res: Response): Promise<void> => {
 
 // Forgot password function
 export const forgotpass = async (req: Request, res: Response): Promise<void> => {
+  const errors = validationResult(req);
 
 
+  if (!errors.isEmpty()) {
+    res.status(400).json({ errors: errors.array().map(error => error.msg).join(", ") });
+    return
+  }
+  const { email } = req.body
+  try {
+    const user = await UserModel.findOne({ email })
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+    const token = crypto.randomBytes(20).toString("hex");
+    user.recoveryToken = token;
+    user.rtExpiry = new Date(Date.now() + 3600000);
+    await user.save();
+    const message = `Hi ${user.username}, your recovery token is: ${token}`
+    const subject = "Account Recovery"
 
+    await send_Otp(user.email, message, subject)
+    res.status(201).json({ message: "recovery link sent successfully" })
+    return
+
+  } catch (error) {
+    console.error("Error during token generation:", error);
+    res.status(500).json({ error: "Internal server error" });
+    return
+  }
+
+
+}
+
+// password reset function
+export const resetPassword = async (req: Request, res: Response): Promise<void> => {
+  const errors = validationResult(req);
+
+
+  if (!errors.isEmpty()) {
+    res.status(400).json({ errors: errors.array().map(error => error.msg).join(", ") });
+    return
+  }
+  const { rToken, newPassword } = req.body
+
+
+  try {
+    const user = await UserModel.findOne({ recoveryToken: rToken })
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+    if (!user.recoveryToken || user.recoveryToken !== rToken) {
+      res.status(400).json({ message: "Invalid recovery token" });
+      return;
+    }
+    if (user.rtExpiry && user.rtExpiry <= new Date()) {
+      res.status(400).json({ message: "Recovery token has expired" });
+      return;
+    }
+
+    const nPassword = await bcrypt.hash(newPassword, 10)
+    user.password = nPassword;
+    user.recoveryToken = "";
+    user.rtExpiry = null;
+    await user.save();
+    res.status(200).json({ message: "Password reset successfully" });
+  } catch (error) {
+    console.error("Error in resetPassword:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 }
