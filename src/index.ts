@@ -6,6 +6,7 @@ import router from "./routes/user_routes";
 dotenv.config();
 const app = express();
 
+
 app.use(express.json());
 
 app.get("/", (req: Request, res: Response) => {
@@ -15,7 +16,7 @@ app.get("/", (req: Request, res: Response) => {
 const PORT = process.env.PORT || 3000;
 
 connectDB();
-app.use("/", router);
+app.use("/api", router);
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
