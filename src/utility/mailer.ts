@@ -1,6 +1,5 @@
 import dotenv from "dotenv"
 import nodemailer from "nodemailer"
-import  { IUser } from "../model/UserModel";
 
 dotenv.config();
 

@@ -10,30 +10,12 @@ export interface IUser extends Document {
   updatedAt?: Date;
   isVerified: boolean;
   recoveryToken: String;
-  optExpiry:Date | null;
+  otpExpiry:Date | null;
   rtExpiry:Date | null;
 }
 
 const UserSchema = new Schema<IUser>(
   {
-    isVerified: {
-      type: Boolean,
-      default: false,
-    },
-    otp: {
-      type: String,
-    },
-    optExpiry:{
-      type: Date,
-      default: null
-    },
-    recoveryToken : {
-      type: String,
-    },
-    rtExpiry:{
-      type:Date,
-      default: null
-    },
     username: {
       type: String,
       required: true,
@@ -49,6 +31,24 @@ const UserSchema = new Schema<IUser>(
       type: String,
       required: true,
     },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    otp: {
+      type: String,
+    },
+    otpExpiry:{
+      type: Date,
+      default: null
+    },
+    recoveryToken : {
+      type: String,
+    },
+    rtExpiry:{
+      type:Date,
+      default: null
+    }
   },
   {
     timestamps: true,

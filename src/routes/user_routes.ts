@@ -4,7 +4,7 @@ import { check } from "express-validator";
 
 const router = express.Router();
 
-router.post("/signup", [
+router.post("/sign-up", [
     check("username").notEmpty().withMessage("Username is required"),
     check("email").isEmail().withMessage("A valid email is required"),
     check("password")
@@ -18,17 +18,19 @@ router.post("/login", [
     check("email").isEmail().withMessage("A valid email is required"),
     check("password").notEmpty().withMessage("Password is required"),
 ], login);
-router.post("/verifyotp", [
+
+router.post("/verify-otp", [
     check("otp").notEmpty().withMessage("otp is required").isLength({ min: 4, max: 4 }),
     check("email").isEmail().withMessage("A valid email is required"),
 
 ], verifyOtp);
-router.post("/forgotpassword", [
+router.post("/forgot-password", [
     check("email").isEmail().withMessage("A valid email is required"),
 
 ], forgotpass);
-router.post("/resetpassword", [
-    check("newPassword")
+
+router.patch("/reset-password", [
+    check("password")
         .notEmpty()
         .withMessage("Password is required")
         .isLength({ min: 8 })
