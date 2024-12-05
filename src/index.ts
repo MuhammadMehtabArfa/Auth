@@ -2,13 +2,13 @@ import express, { Request, Response } from "express";
 import dotenv from "dotenv";
 import { connectDB } from "./config/db";
 import router from "./routes/user_routes";
-
+import cors from 'cors'
 dotenv.config();
 const app = express();
 
 
 app.use(express.json());
-
+app.use(cors())
 app.get("/", (req: Request, res: Response) => {
   res.send("Server is running!");
 });
