@@ -21,7 +21,7 @@ router.post("/login", [
 
 router.post("/verify-otp", [
     check("otp").notEmpty().withMessage("otp is required").isLength({ min: 4, max: 4 }),
-    check("email").isEmail().withMessage("A valid email is required"),
+
 
 ], verifyOtp);
 router.post("/forgot-password", [
@@ -29,7 +29,7 @@ router.post("/forgot-password", [
 
 ], forgotpass);
 
-router.patch("/reset-password", [
+router.post("/reset-password", [
     check("password")
         .notEmpty()
         .withMessage("Password is required")

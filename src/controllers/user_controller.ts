@@ -46,9 +46,8 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
     if (error?.code === 11000) {
       const field = error?.message.includes("email") ? "email" : "username";
       res.status(401).json({
-        message: `${
-          field.charAt(0).toUpperCase() + field.slice(1)
-        } must be unique`,
+        message: `${field.charAt(0).toUpperCase() + field.slice(1)
+          } must be unique`,
       });
       return;
     }
@@ -123,10 +122,10 @@ export const verifyOtp = async (req: Request, res: Response): Promise<void> => {
     });
     return;
   }
-  const { otp, email } = req.body;
+  const { otp } = req.body;
 
   try {
-    const user = await UserModel.findOne({ email });
+    const user = await UserModel.findOne({ otp });
 
     if (!user) {
       res.status(404).json({ message: "User not found" });
@@ -190,14 +189,14 @@ export const forgotpass = async (
       return;
     }
     const token = crypto.randomBytes(20).toString("hex");
-    user.recoveryToken = token;
+    user.rToken = token;
     user.rtExpiry = new Date(Date.now() + 3600000);
     await user.save();
     const message = `Hi ${user.username}, your recovery token is: ${token}`;
     const subject = "Account Recovery";
 
     await send_Otp(user.email, message, subject);
-    res.status(201).json({ message: "recovery link sent successfully" });
+    res.status(201).json({ message: "recovery token sent successfully" });
     return;
   } catch (error) {
     console.error("Error during token generation:", error);
@@ -225,12 +224,12 @@ export const resetPassword = async (
   const { rToken, password } = req.body;
 
   try {
-    const user = await UserModel.findOne({ recoveryToken: rToken });
+    const user = await UserModel.findOne({ rToken });
     if (!user) {
       res.status(404).json({ message: "User not found" });
       return;
     }
-    if (!user.recoveryToken || user.recoveryToken !== rToken) {
+    if (!user.rToken || user.rToken !== rToken) {
       res.status(400).json({ message: "Invalid recovery token" });
       return;
     }
@@ -241,7 +240,7 @@ export const resetPassword = async (
 
     const nPassword = await bcrypt.hash(password, 10);
     user.password = nPassword;
-    user.recoveryToken = "";
+    user.rToken = "";
     user.rtExpiry = null;
     await user.save();
     res.status(200).json({ message: "Password reset successfully" });

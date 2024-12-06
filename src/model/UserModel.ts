@@ -9,9 +9,9 @@ export interface IUser extends Document {
   createdAt?: Date;
   updatedAt?: Date;
   isVerified: boolean;
-  recoveryToken: String;
-  otpExpiry:Date | null;
-  rtExpiry:Date | null;
+  rToken: String;
+  otpExpiry: Date | null;
+  rtExpiry: Date | null;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -38,15 +38,15 @@ const UserSchema = new Schema<IUser>(
     otp: {
       type: String,
     },
-    otpExpiry:{
+    otpExpiry: {
       type: Date,
       default: null
     },
-    recoveryToken : {
+    rToken: {
       type: String,
     },
-    rtExpiry:{
-      type:Date,
+    rtExpiry: {
+      type: Date,
       default: null
     }
   },
