@@ -39,15 +39,16 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
     const subject = "Your OTP Code";
 
     await send_Otp(user.email, message, subject);
-    res.status(201).json({ message: "otp sent successfully" });
+    res.status(201).json({ message: "otp sent successfully", user });
     return;
   } catch (error: any) {
     console.log(error);
     if (error?.code === 11000) {
       const field = error?.message.includes("email") ? "email" : "username";
       res.status(401).json({
-        message: `${field.charAt(0).toUpperCase() + field.slice(1)
-          } must be unique`,
+        message: `${
+          field.charAt(0).toUpperCase() + field.slice(1)
+        } must be unique`,
       });
       return;
     }
@@ -95,7 +96,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       const subject = "Your OTP Code";
 
       await send_Otp(user.email, message, subject);
-      res.status(201).json({ message: "otp sent successfully" });
+      res.status(201).json({ message: "otp sent successfully", user });
       return;
     }
 
@@ -122,10 +123,10 @@ export const verifyOtp = async (req: Request, res: Response): Promise<void> => {
     });
     return;
   }
-  const { otp } = req.body;
+  const { email, otp } = req.body;
 
   try {
-    const user = await UserModel.findOne({ otp });
+    const user = await UserModel.findOne({ email });
 
     if (!user) {
       res.status(404).json({ message: "User not found" });
@@ -192,7 +193,20 @@ export const forgotpass = async (
     user.rToken = token;
     user.rtExpiry = new Date(Date.now() + 3600000);
     await user.save();
-    const message = `Hi ${user.username}, your recovery token is: ${token}`;
+    const recoveryUrl = `${
+      process.env.FRONTEND_URL
+    }/reset-password?token=${encodeURIComponent(token)}`;
+    const message = `
+  <p>Hi ${user.username},</p>
+  <p>You have requested to recover your account. Please click the link below to reset your password:</p>
+  <p>
+    <a href="${recoveryUrl}" style="color: #007bff; text-decoration: none;">
+      Reset Your Password
+    </a>
+  </p>
+  <p>If you did not request this, please ignore this email. This link will expire in 1 hour.</p>
+  <p>Thank you,<br>Your Team</p>
+`;
     const subject = "Account Recovery";
 
     await send_Otp(user.email, message, subject);

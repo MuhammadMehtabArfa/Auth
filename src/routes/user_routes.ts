@@ -20,6 +20,7 @@ router.post("/login", [
 ], login);
 
 router.post("/verify-otp", [
+    check("email").isEmail().withMessage("A valid email is required"),
     check("otp").notEmpty().withMessage("otp is required").isLength({ min: 4, max: 4 }),
 
 

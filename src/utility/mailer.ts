@@ -23,7 +23,7 @@ export const send_Otp = async (email: string, message:string, subject:string): P
           from: process.env.AUTH_EMAIL,
           to: email,
           subject: subject,
-          text: message,
+          html: message,
         };
     
         await transporter.sendMail(mailOptions);
